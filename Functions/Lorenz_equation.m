@@ -1,7 +1,6 @@
-% DNS integration of the Lorenz system 
+% Differential equation for the Lorenz system
 % Zheng Zheng, June 2022
 
-% Differential equation for the Lorenz system
 function xprime = Lorenz_equation(~,x)
     sig = 10;
     beta = 8/3;
