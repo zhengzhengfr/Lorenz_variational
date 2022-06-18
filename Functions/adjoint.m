@@ -1,15 +1,18 @@
 % function for adjoint operattor
 % Zheng Zheng, June 2022
 
-% input: 
-% output:  
-function [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, rho, r1, r2, r3, sigma, beta, T, k)
-    r1_spec = abs(fft(r1));
-    r2_spec = abs(fft(r2));
-    r3_spec = abs(fft(r3));
-    G1 = -( (1/T)*r1_spec*(2*pi*complex(0,1)*k) - sigma*r1_spec + (rho - z_hat)*r2_spec + y_hat*r3_spec );
-    G2 = -( (1/T)*r2_spec*(2*pi*complex(0,1)*k) + sigma*r1_spec  - r2_spec + x_hat*r3_spec );
-    G3 = -( (1/T)*r3_spec*(2*pi*complex(0,1)*k)  - x_hat*r2_spec - beta*r3_spec );
+% input: x, y, z in physical, residual in x, y and z, system's constants, period T, mode k
+% output: G1,2,3 (linear + non-linear) in spectral 
+function [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, res7, res8, res9, rho, sigma, beta, T, k)
+    r1_spec = fft(res7);
+    r2_spec = fft(res8);
+    r3_spec = fft(res9);
+    for i = 1: length(k)
+        % G (linear + non-linear) in spectral 
+        G1(i) = -( (1/T)*r1_spec(i)*(2*pi*complex(0,1)*k(i)) - sigma*r1_spec(i) + (rho - z_hat(i))*r2_spec(i) + y_hat(i)*r3_spec(i) );
+        G2(i) = -( (1/T)*r2_spec(i)*(2*pi*complex(0,1)*k(i)) + sigma*r1_spec(i)  - r2_spec(i) + x_hat(i)*r3_spec(i) );
+        G3(i) = -( (1/T)*r3_spec(i)*(2*pi*complex(0,1)*k(i))  - x_hat(i)*r2_spec(i) - beta*r3_spec(i) );
+    end
 end
 
 

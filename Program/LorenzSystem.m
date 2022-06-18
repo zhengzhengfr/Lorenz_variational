@@ -16,10 +16,10 @@ x0=[0.510323840849752	1.22472668258826	17.2923403358236]; %T=2.32 dt = 0.01;
 sig = 10;
 beta = 8/3;
 rho = 28; 
-[t,xyz] = DNS(tmax,dt,x0);
-x_t = xyz(:,1); % x as a function of time 
-y_t = xyz(:,2); % y as a  function of time 
-z_t = xyz(:,3); % z as a function of time 
+[t, xyz] = DNS(tmax,dt,x0);
+x_t = xyz(:,1); % x as a function of time in physical 
+y_t = xyz(:,2); % y as a  function of time in physical 
+z_t = xyz(:,3); % z as a function of time in physical 
 % % Plots
 % figure(1);
 % clf;
@@ -53,22 +53,22 @@ z_t = xyz(:,3); % z as a function of time
 % title('z-coordinate as a function of time')
 % hold on;
 
-% Recurrent "flow" analysis 
-diff = recurrent_flow(tmax,dt,xyz);
-% Contour plot
-figure(2);
-contourf(log10(diff), 50, 'edgecolor', 'none');
-colorbar;
-xlabel('t_s')
-ylabel('t_e')
-title('2D contour plot')
+% % Recurrent "flow" analysis 
+% diff = recurrent_flow(tmax,dt,xyz);
+% % Contour plot
+% figure(2);
+% contourf(log10(diff), 50, 'edgecolor', 'none');
+% colorbar;
+% xlabel('t_s')
+% ylabel('t_e')
+% title('2D contour plot')
 
 %% use FFT to close the curve of initial guess
 mode_fft = 128; % modes to perform FFT/iFFT
 kill = floor(mode_fft/3); % modes to kill
-iFFT_x = real(kill_modes(x_t, kill, mode_fft));
-iFFT_y = real(kill_modes(y_t, kill, mode_fft));
-iFFT_z = real(kill_modes(z_t, kill, mode_fft));
+iFFT_x = kill_modes(x_t, kill, mode_fft);
+iFFT_y = kill_modes(y_t, kill, mode_fft);
+iFFT_z = kill_modes(z_t, kill, mode_fft);
 % %To plot x, y, z (t)
 % m = linspace(0,tmax,length(iFFT_y));
 % n = linspace(0,tmax,length(y_t));
@@ -80,60 +80,63 @@ iFFT_z = real(kill_modes(z_t, kill, mode_fft));
 % p(2).LineWidth = 1;
 % p(2).Color = 'g';
 
-% closed and smooth 3D trajectory
-plot3(iFFT_x, iFFT_y, iFFT_z);
-xlabel('x')
-ylabel('y')
-zlabel('z')
-title('Closed 3D Trajectory of the system in phase space')
+% % closed and smooth 3D trajectory
+% plot3(iFFT_x, iFFT_y, iFFT_z);
+% xlabel('x')
+% ylabel('y')
+% zlabel('z')
+% title('Closed 3D Trajectory of the system in phase space')
 
 %% Variational dynamics
-% number of modes
-k = linspace(1, mode_fft + 1, mode_fft + 1);
-% data structure, a closed loop 
-x_hat = abs(fft(iFFT_x));
-y_hat = abs(fft(iFFT_y));
-z_hat = abs(fft(iFFT_z));
+% modes
+k = [0:1:((mode_fft /2) - 1) 0 ((-mode_fft /2) + 1):1:-1];
+% initial conditions drom reccurent analysis, a closed loop, transform from physical to spectral 
+x_hat = fft(iFFT_x);
+y_hat = fft(iFFT_y);
+z_hat = fft(iFFT_z);
 % start of time integration 
-d_tau = 0.1;
-for t = 0:d_tau:100
-    T = tmax; % initial period from DNS
+d_tau = 0.1; % dt
+T = tmax; % initial period from recurrency analysis
+for time_step = 0:d_tau:0.2
     % residual in x, y and z
-    [r1, r2, r3] = residual(x_hat, y_hat, z_hat, sig, beta, rho, T, k);
-    % G = linear + non-linear 
-    [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, rho, r1, r2, r3, sig, beta, T, k);
+    [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
+    % G = linear + nonlinear terms in spectral
+    [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, res7, res8, res9, rho, sig, beta, T, k);
     % Linear terms in spectral 
-    % For  x_hat
-    term_xl1 = -( sig^2 + rho^2 + (4*pi^2*k.^2)/(T^2) + ( complex(0, 4*pi*k.*sig) )/T   );
-    term_xl2 = ( sig^2 + rho+ ( complex(0, 2*pi*k.*(sig + rho )) )/T    );
-    L1 = - term_xl1.*x_hat + term_xl2.*y_hat;
-    % For  y_hat
-    term_yl1 = ( sig^2 + rho+ ( complex(0, 2*pi*k.*(sig - rho )) )/T    );
-    term_yl2 = -( sig^2 + 1 + (4*pi^2*k.^2)/(T^2) );
-    L2 = term_yl1.*x_hat - term_yl2.*y_hat;
-    % For  z_hat
-    term_zl1 = -( beta^2 + (4*pi^2*k.^2)/(T^2) );
-    L3 = -term_zl1.*z_hat;
-    
-    % Non-linear terms in spectral 
-    N1 = G1 - L1;
-    N2 = G2 - L2;
-    N3 = G3 - L3;
-    
-    % Matrix to be inversed 
-    A = 1 + d_tau*term_xl1;
-    B = -d_tau*term_xl2;
-    C = -d_tau*term_yl1;
-    D = 1 + d_tau*term_yl2;
-    E = d_tau*N1 + x_hat;
-    F = d_tau*N2 + y_hat;
-    
+    % loop over k
+    for j = 1:length(k)
+        % For  x_hat
+        term_xl1 = -( sig^2 + rho^2 + (4*pi^2*k(j)^2)/(T^2) + ( complex(0, 4*pi*k(j)*sig) )/T   );
+        term_xl2 = ( sig^2 + rho+ ( complex(0, 2*pi*k(j)*(sig + rho )) )/T    );
+        L1(j) = term_xl1*x_hat(j) + term_xl2*y_hat(j);
+        % For  y_hat
+        term_yl1 = ( sig^2 + rho+ ( complex(0, 2*pi*k(j)*(sig - rho )) )/T    );
+        term_yl2 = -( sig^2 + 1 + (4*pi^2*k(j)^2)/(T^2) );
+        L2(j) = term_yl1*x_hat(j) + term_yl2*y_hat(j);
+        % For  z_hat
+        term_zl1 = -( beta^2 + (4*pi^2*k(j)^2)/(T^2) );
+        L3(j) = term_zl1*z_hat(j);
+        
+        % Non-linear terms in spectral 
+        N1(j) = G1(j) - L1(j);
+        N2(j) = G2(j) - L2(j);
+        N3(j) = G3(j) - L3(j);
+        
+        % Matrix to be inversed 
+        A = 1 - d_tau*term_xl1;
+        B = -d_tau*term_xl2;
+        C = -d_tau*term_yl1;
+        D = 1 - d_tau*term_yl2;
+        E = d_tau*N1(j) + x_hat(j);
+        F = d_tau*N2(j) + y_hat(j);
+        % new x,y,z in spectral 
+        [x_new(j), y_new(j)] = inverse_matrix(A, B, C, D, E, F);
+        z_new(j) = (z_hat(j) + d_tau*N3(j))/(1 - d_tau* term_zl1);
+    end
     % update period
-    T_new = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k);
-    
-    [x_new, y_new] = inverse_matrix(A, B, C, D, E, F);
+    T_new = update_period(x_new, y_new, z_new, res7, res8, res9, T, k, d_tau);
+    T = T_new;
     x_hat = x_new;
     y_hat = y_new;
-    z_new = (z_hat + d_tau*N3)/(1 - d_tau* term_zl1);
     z_hat = z_new;
 end

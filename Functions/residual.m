@@ -1,36 +1,31 @@
 % function to calculate the residual of the system
 % Zheng Zheng, June 2022
 
-% input: 
-% output:  (x_hat, y_hat, z_hat, sigma, beta, rho, T, k)
-function [r1, r2, r3] = residual(x_hat, y_hat, z_hat, sigma, beta, rho, T, k)
-    % residual in spectral coefficient
-    res1 = (-1/T)*x_hat.*(2*pi*complex(0,1)*k) + sigma*(y_hat - x_hat);
-    res2 = (-1/T)*y_hat.*(2*pi*complex(0,1)*k) + x_hat.*(rho - z_hat) - y_hat;
-    res3 = (-1/T)*z_hat.*(2*pi*complex(0,1)*k) + x_hat.*y_hat - beta*z_hat;
-    % iFFT to physical 
-    res_physical1 = ifft(res1);
-    res_physical2 = ifft(res2);
-    res_physical3= ifft(res3);
-    % Product 
-    product1 = res_physical1.*res_physical1;
-    product2 = res_physical2.*res_physical2;
-    product3= res_physical3.*res_physical3;
-    n1 = 0;
-    n2 = 0;
-    n3= 0;
-    % Integration from 0 to 1
-    for i = 1:length(product1)
-        m1 = n1 + product1(i)^2;
-        m2 = n2 + product2(i)^2;
-        m3 = n3 + product3(i)^2;
-        n1 = m1;
-        n2 = m2;
-        n3 = m3;
+% input: x, y, z in physical and spectral, system's constants, period T, mode k
+% output: residual in x, y and z as 3 scalar numbers and residual field for each mode k as 3 vectors
+function [r1, r2, r3, res7, res8, res9] = residual(x_phy, y_phy, z_phy, x_hat, y_hat, z_hat, sigma, beta, rho, T, k)
+    for i = 1: length(k)
+        % disp('i'); disp(i); disp('N'); disp(length(x_hat))
+        res1(i) =  x_hat(i)*(2*pi*complex(0,1)*k(i)); % now in spectral 
+        res2(i) =  y_hat(i)*(2*pi*complex(0,1)*k(i));
+        res3(i) =  z_hat(i)*(2*pi*complex(0,1)*k(i));
     end
-    r1 = m1/length(product1);
-    r2 = m2/length(product2);
-    r3 = m3/length(product3);
+    res1_phy = (-1/T)*ifft( res1, 'symmetric' ); % now in physical 
+    res2_phy = (-1/T)*ifft( res2, 'symmetric' );
+    res3_phy = (-1/T)*ifft( res3, 'symmetric' );
+    res4 = sigma*(y_phy - x_phy); % in physical 
+    res5 =  x_phy.*(rho - z_phy) - y_phy;
+    res6 =  x_phy.*y_phy - beta*z_phy;
+    res7 = res1_phy + res4; % in physical 
+    res8 = res2_phy + res5;
+    res9 = res3_phy + res6;
+    % Product 
+    res_squared1=  res7.^2;
+    res_squared2 = res8.^2;
+    res_squared3 = res9.^2;
+    r1 = sum(res_squared1)/length(k);
+    r2 = sum(res_squared2)/length(k);   
+    r3 = sum(res_squared3)/length(k);    
 end
 
 
