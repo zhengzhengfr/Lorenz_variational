@@ -95,9 +95,9 @@ x_hat = fft(iFFT_x);
 y_hat = fft(iFFT_y);
 z_hat = fft(iFFT_z);
 % start of time integration 
-d_tau = 0.01; % dt
+d_tau = 0.1; % dt
 T = tmax; % initial period from recurrency analysis
-for time_step = 0:d_tau:0.1
+for time_step = 0:d_tau:1
     % residual in x, y and z
     [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
     % G = linear + nonlinear terms in spectral
@@ -126,21 +126,23 @@ for time_step = 0:d_tau:0.1
         N3(j) = G3(j) - L3(j);
         
         % If linear terms treated explicitly
-        x_new(j) = x_hat(j)*(1 + d_tau*term_xl1) + d_tau*term_xl2*y_hat(j) + d_tau*N1(j);
-        y_new(j) = d_tau*term_yl2*x_hat(j) + y_hat(j)*(1 + d_tau*term_yl2) + d_tau*N2(j);
-        z_new(j) = z_hat(j)*(1 + d_tau*term_zl1) + d_tau*N3(j);
+        x_new(j) = x_hat(j) 
+        y_new(j)
+        z_new(j)
 
-%         % If linear terms treated implicitly
-%         % Matrix to be inversed 
-%         A = 1 - d_tau*term_xl1;
-%         B = -d_tau*term_xl2;
-%         C = -d_tau*term_yl1;
-%         D = 1 - d_tau*term_yl2;
-%         E = d_tau*N1(j) + x_hat(j);
-%         F = d_tau*N2(j) + y_hat(j);
-%         % new x,y,z in spectral 
-%         [x_new(j), y_new(j)] = inverse_matrix(A, B, C, D, E, F);
-%         z_new(j) = (z_hat(j) + d_tau*N3(j))/(1 - d_tau* term_zl1);
+        % If linear terms treated implicitly
+        % Matrix to be inversed 
+        A = 1 - d_tau*term_xl1;
+        B = -d_tau*term_xl2;
+        C = -d_tau*term_yl1;
+        D = 1 - d_tau*term_yl2;
+        E = d_tau*N1(j) + x_hat(j);
+        F = d_tau*N2(j) + y_hat(j);
+        % new x,y,z in spectral 
+        [x_new(j), y_new(j)] = inverse_matrix(A, B, C, D, E, F);
+        z_new(j) = (z_hat(j) + d_tau*N3(j))/(1 - d_tau* term_zl1);
+
+
     end
     
     x_hat = x_new;
