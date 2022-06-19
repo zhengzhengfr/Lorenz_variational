@@ -95,9 +95,9 @@ x_hat = fft(iFFT_x);
 y_hat = fft(iFFT_y);
 z_hat = fft(iFFT_z);
 % start of time integration 
-d_tau = 0.1; % dt
+d_tau = 0.01; % dt
 T = tmax; % initial period from recurrency analysis
-for time_step = 0:d_tau:0.2
+for time_step = 0:d_tau:0.1
     % residual in x, y and z
     [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
     % G = linear + nonlinear terms in spectral
@@ -106,8 +106,8 @@ for time_step = 0:d_tau:0.2
     % loop over k
     for j = 1:length(k)
         % For  x_hat
-        term_xl1 = -( sig^2 + rho^2 + (4*pi^2*k(j)^2)/(T^2) + ( complex(0, 4*pi*k(j)*sig) )/T   );
-        term_xl2 = ( sig^2 + rho+ ( complex(0, 2*pi*k(j)*(sig + rho )) )/T    );
+        term_xl1 = -( sig^2 + rho^2 + (4*pi^2*k(j)^2)/(T^2)  );
+        term_xl2 = ( sig^2 + rho+ ( complex(0, 2*pi*k(j)*( rho - sig)) )/T );
         L1(j) = term_xl1*x_hat(j) + term_xl2*y_hat(j);
         % For  y_hat
         term_yl1 = ( sig^2 + rho+ ( complex(0, 2*pi*k(j)*(sig - rho )) )/T    );
