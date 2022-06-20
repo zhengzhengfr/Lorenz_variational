@@ -14,6 +14,7 @@ function [r1, r2, r3, res7, res8, res9] = residual(x_phy, y_phy, z_phy, x_hat, y
     res2_phy = (-1/T)*ifft( res2, 'symmetric' );
     res3_phy = (-1/T)*ifft( res3, 'symmetric' );
     res4 = sigma*(y_phy - x_phy); % in physical 
+    % dealising here?
     res5 =  x_phy.*(rho - z_phy) - y_phy;
     res6 =  x_phy.*y_phy - beta*z_phy;
     res7 = res1_phy + res4; % in physical, vector of residual for all modes 
@@ -24,8 +25,8 @@ function [r1, r2, r3, res7, res8, res9] = residual(x_phy, y_phy, z_phy, x_hat, y
     res_squared2 = res8.^2;
     res_squared3 = res9.^2;
     r1 = sum(res_squared1)/length(k);
-    r2 = sum(res_squared2)/length(k);   
-    r3 = sum(res_squared3)/length(k);    
+    r2 = sum(res_squared2)/length(k);
+    r3 = sum(res_squared3)/length(k);  
 end
 
 

@@ -1,6 +1,5 @@
 function plot_DNS(t, x_t, y_t, z_t)
     figure;
-
     % 3D trajectory
     subplot(2,2,1)
         plot3(x_t, y_t, z_t);

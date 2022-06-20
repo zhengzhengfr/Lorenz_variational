@@ -1,4 +1,5 @@
-%  function for updating the period after each iteration
+%  function for adjoint operattor
+% Zheng Zheng, June 2022
 
 % input: x, y, z in spectral, 3 residual in physical, period, mode, dt
 % output: new period
@@ -11,7 +12,6 @@ function [T_new] = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k, d_tau)
     dxds_phy = ifft(dxds, 'symmetric' ); % in physical 
     dyds_phy = ifft(dyds, 'symmetric' );
     dzds_phy = ifft(dzds, 'symmetric' );
-    % dealising here?
     equ = -(1/T^2)*(dxds_phy.*r1 + dyds_phy.*r2 + dzds_phy.*r3); % in physical 
     % Integration from 0 to 1
     m1 = sum(equ);
