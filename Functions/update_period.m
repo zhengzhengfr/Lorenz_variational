@@ -14,9 +14,9 @@ function [T_new] = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k, d_tau)
     % dealising here?
     equ = -(1/T^2)*(dxds_phy.*r1 + dyds_phy.*r2 + dzds_phy.*r3); % in physical 
     % Integration from 0 to 1
-    m1 = sum(equ);
+    m1 = mean(equ);%sum(equ)/length(equ);
     % Update
-    T_new = (m1/length(equ))*d_tau + T;
+    T_new = m1*d_tau + T;
 end
 
 
