@@ -66,13 +66,13 @@ z_t = xyz(:,3); % z as a function of time in physical
 %% use FFT to close the curve of initial guess
 mode_fft = 128; % modes to perform FFT/iFFT
 kill = floor(mode_fft/3); % modes to kill
-iFFT_x = kill_modes(x_t, kill, mode_fft);
+iFFT_x = kill_modes(x_t, kill, mode_fft); % in physical, smooth curve
 iFFT_y = kill_modes(y_t, kill, mode_fft);
 iFFT_z = kill_modes(z_t, kill, mode_fft);
 % %To plot x, y, z (t)
-% m = linspace(0,tmax,length(iFFT_y));
-% n = linspace(0,tmax,length(y_t));
-% p = plot(m, iFFT_y, n, y_t);
+% m = linspace(0,tmax,length(iFFT_x));
+% n = linspace(0,tmax,length(x_t));
+% p = plot(m, iFFT_x, n, x_t);
 % p(1).LineStyle = '-';
 % p(1).LineWidth = 1;
 % p(1).Color = 'r';
@@ -97,7 +97,7 @@ z_hat = fft(iFFT_z);
 % start of time integration 
 d_tau = 0.01; % dt
 T = tmax; % initial period from recurrency analysis
-for time_step = 0:d_tau:0.1
+for time_step = 0:d_tau:0.01
     % residual in x, y and z
     [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
     % G = linear + nonlinear terms in spectral

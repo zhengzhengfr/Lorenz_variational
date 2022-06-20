@@ -16,7 +16,7 @@ function [T_new] = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k, d_tau)
     % Integration from 0 to 1
     m1 = sum(equ);
     % Update
-    T_new = (m1/length(equ))*d_tau + T
+    T_new = (m1/length(equ))*d_tau + T;
 end
 
 

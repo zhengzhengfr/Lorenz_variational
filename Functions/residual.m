@@ -16,7 +16,7 @@ function [r1, r2, r3, res7, res8, res9] = residual(x_phy, y_phy, z_phy, x_hat, y
     res4 = sigma*(y_phy - x_phy); % in physical 
     res5 =  x_phy.*(rho - z_phy) - y_phy;
     res6 =  x_phy.*y_phy - beta*z_phy;
-    res7 = res1_phy + res4; % in physical 
+    res7 = res1_phy + res4; % in physical, vector of residual for all modes 
     res8 = res2_phy + res5;
     res9 = res3_phy + res6;
     % Product 
