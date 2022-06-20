@@ -2,7 +2,7 @@
 % Zheng Zheng, June 2022
 
 addpath('../Functions') ;
-clear; clc
+close all; clear; clc
 % Maximum simulation time tmax (10, 20, 100, 200)
 tmax = 2.32;
 dt = 0.01;
@@ -20,72 +20,76 @@ rho = 28;
 x_t = xyz(:,1); % x as a function of time in physical 
 y_t = xyz(:,2); % y as a  function of time in physical 
 z_t = xyz(:,3); % z as a function of time in physical 
-% % Plots
-% figure(1);
-% clf;
-% % 3D trajectory
-% subplot(2,2,1)
-% plot3(x_t, y_t, z_t);
-% hold on 
-% plot3(x0(1), x0(2), x0(3), 'r.','markersize',10); %starting point
-% plot3(xyz(end,1), xyz(end,2), xyz(end,3), 'b.','markersize',10); %ending point
-% xlabel('x')
-% ylabel('y')
-% zlabel('z')
-% title('3D Trajectory of the system in phase space')
-% % x as a function of time
-% subplot(2,2,2)
-% plot(t, x_t)
-% xlabel('t')
-% ylabel('x(t)')
-% title('x-coordinate as a function of time')
-% % y as a function of time
-% subplot(2,2,3)
-% plot(t, y_t)
-% xlabel('t')
-% ylabel('y(t)')
-% title('y-coordinate as a function of time')
-% % z as a function of time
-% subplot(2,2,4)
-% plot(t, z_t)
-% xlabel('t')
-% ylabel('z(t)')
-% title('z-coordinate as a function of time')
-% hold on;
 
-% % Recurrent "flow" analysis 
-% diff = recurrent_flow(tmax,dt,xyz);
-% % Contour plot
-% figure(2);
-% contourf(log10(diff), 50, 'edgecolor', 'none');
-% colorbar;
-% xlabel('t_s')
-% ylabel('t_e')
-% title('2D contour plot')
+% plot_DNS(t, x_t, y_t, z_t);
+% plot_DNS(1:2*length(x_t), [x_t;x_t], [y_t;y_t], [z_t;z_t]);
+
+%{
+    % Recurrent "flow" analysis 
+    diff = recurrent_flow(tmax,dt,xyz);
+    % Contour plot
+    figure(2);
+    contourf(log10(diff), 50, 'edgecolor', 'none');
+    colorbar;
+    xlabel('t_s')
+    ylabel('t_e')
+    title('2D contour plot')
+%}
 
 %% use FFT to close the curve of initial guess
 mode_fft = 128; % modes to perform FFT/iFFT
-kill = floor(mode_fft/3); % modes to kill
+kill = floor(mode_fft/2 - 6); % modes to kill
 iFFT_x = kill_modes(x_t, kill, mode_fft); % in physical, smooth curve
 iFFT_y = kill_modes(y_t, kill, mode_fft);
 iFFT_z = kill_modes(z_t, kill, mode_fft);
-% %To plot x, y, z (t)
-% m = linspace(0,tmax,length(iFFT_x));
-% n = linspace(0,tmax,length(x_t));
-% p = plot(m, iFFT_x, n, x_t);
-% p(1).LineStyle = '-';
-% p(1).LineWidth = 1;
-% p(1).Color = 'r';
-% p(2).LineStyle = '--';
-% p(2).LineWidth = 1;
-% p(2).Color = 'g';
 
-% % closed and smooth 3D trajectory
-% plot3(iFFT_x, iFFT_y, iFFT_z);
-% xlabel('x')
-% ylabel('y')
-% zlabel('z')
-% title('Closed 3D Trajectory of the system in phase space')
+%{
+    %To plot x, y, z (t)
+    m = linspace(0,tmax,length(iFFT_x));
+    n = linspace(0,tmax,length(x_t));
+    p = plot(m, iFFT_x, n, x_t);
+    p(1).LineStyle = '-';
+    p(1).LineWidth = 1;
+    p(1).Color = 'r';
+    p(2).LineStyle = '--';
+    p(2).LineWidth = 1;
+    p(2).Color = 'g';
+    
+    % closed and smooth 3D trajectory
+    plot3(iFFT_x, iFFT_y, iFFT_z);
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    title('Closed 3D Trajectory of the system in phase space')
+%}
+
+
+% t_new = linspace(0,1,length(iFFT_x));
+% plot_DNS(1:2*length(iFFT_x), [iFFT_x,iFFT_x], [iFFT_y,iFFT_y], [iFFT_z,iFFT_z]);
+
+return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 %% Variational dynamics
 % modes
@@ -97,7 +101,7 @@ z_hat = fft(iFFT_z);
 % start of time integration 
 d_tau = 0.01; % dt
 T = tmax; % initial period from recurrency analysis
-for time_step = 0:d_tau:0.01
+for time_step = 0:d_tau:0.05
     % residual in x, y and z
     [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
     % G = linear + nonlinear terms in spectral
@@ -142,7 +146,7 @@ for time_step = 0:d_tau:0.01
     end
     % update period, T treated explicitly
     T_new = update_period(x_hat, y_hat, z_hat, res7, res8, res9, T, k, d_tau);
-    T = T_new;
+    T = T_new
     x_hat = x_new;
     y_hat = y_new;
     z_hat = z_new;
