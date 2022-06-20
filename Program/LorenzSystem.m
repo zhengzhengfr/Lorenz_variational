@@ -102,9 +102,7 @@ for time_step = 0:d_tau:0.01
     [r1, r2, r3, res7, res8, res9] = residual(iFFT_x, iFFT_y, iFFT_z, x_hat, y_hat, z_hat, sig, beta, rho, T, k);
     % G = linear + nonlinear terms in spectral
     [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, res7, res8, res9, rho, sig, beta, T, k);
-    % update period, T treated explicitly
-    T_new = update_period(x_hat, y_hat, z_hat, res7, res8, res9, T, k, d_tau);
-    T = T_new;
+    
     % loop over k
     for j = 1:length(k)
         % Linear terms in spectral 
@@ -142,7 +140,9 @@ for time_step = 0:d_tau:0.01
 %         [x_new(j), y_new(j)] = inverse_matrix(A, B, C, D, E, F);
 %         z_new(j) = (z_hat(j) + d_tau*N3(j))/(1 - d_tau* term_zl1);
     end
-    
+    % update period, T treated explicitly
+    T_new = update_period(x_hat, y_hat, z_hat, res7, res8, res9, T, k, d_tau);
+    T = T_new;
     x_hat = x_new;
     y_hat = y_new;
     z_hat = z_new;
