@@ -7,8 +7,7 @@
 function [xy_hat] = nonlinear_multi(x_hat, y_hat)
     x_phy = ifft(x_hat, 'symmetric');
     y_phy = ifft(y_hat, 'symmetric');
-    xy_phy = x_phy.*y_phy;
-    xy_hat = fft(xy_phy);
+    xy_hat = fft(x_phy.*y_phy);
 end
 
 
