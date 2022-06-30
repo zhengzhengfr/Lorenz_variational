@@ -16,7 +16,7 @@ function [T_new] = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k, d_tau)
     term3 = ifft(dealising(fft(dzds_phy.*r3)), "symmetric" );
     equ = -(1/T^2)*(term1 + term2 + term3); % in physical 
     % Integration from 0 to 1
-    m1 = mean(equ);%sum(equ)/length(equ);
+    m1 = mean(equ);
     % Update
     T_new = m1*d_tau + T;
 end

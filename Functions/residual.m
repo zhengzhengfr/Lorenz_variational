@@ -2,7 +2,7 @@
 % Zheng Zheng, June 2022
 
 % input: x, y, z in spectral, system's constants, period T, mode k
-% output: residual field in x, y and z for each mode k as 3 vectors
+% output: residual field in x, y and z for each mode k in 3 vectors
 function [res7, res8, res9] = residual(x_hat, y_hat, z_hat, sigma, beta, rho, T, k)
     x_phy = ifft( x_hat, 'symmetric');
     y_phy = ifft( y_hat, 'symmetric');
