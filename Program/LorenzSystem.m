@@ -15,12 +15,10 @@ dt = 0.01;
 x0=[11.3268112696877	16.4978425456681	23.5759367337918]; %T= 3.02 ; 
 
 % Solving Lorenz system - DNS
-% Parameters, should be the same in function Lorenz_equation. 
-% If changed, change both 
-sig = 10;
+sigma = 10;
 beta = 8/3;
-rho = 28; 
-[t, xyz] = DNS(tmax, dt, x0);
+rho = 28; % 20 for non-chaotic behaviour
+[t, xyz] = DNS(tmax, dt, x0, sigma, beta, rho);
 % x, y, z as a function of time in physical 
 x_t = xyz(:,1); 
 y_t = xyz(:,2); 
@@ -68,7 +66,7 @@ d_tau = 0.0007;
 % dt = 0.0007 for implicit, saturated at t = 550, J = 4.32e-12 , took 13 min 
 T = tmax; %initial period from recurrency analysis
 % initial residual 
-[r1, r2, r3] = residual(x_hat, y_hat, z_hat, sig, beta, rho, T, k);
+[r1, r2, r3] = residual(x_hat, y_hat, z_hat, sigma, beta, rho, T, k);
 
 JJ = [];
 tt = [];
@@ -78,7 +76,7 @@ for i = 1:20000
     for j = 1:200
         tau = tau + d_tau;
         % G = linear + nonlinear terms in spectral
-        [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, rho, sig, beta, T, k); % Here I think it's better to pass directly r1-3
+        [G1, G2, G3] = adjoint(x_hat, y_hat, z_hat, rho, sigma, beta, T, k); % Here I think it's better to pass directly r1-3
         T = update_period(x_hat, y_hat, z_hat, r1, r2, r3, T, k, d_tau);
 
 %         % explicit integration
@@ -90,12 +88,12 @@ for i = 1:20000
         for j = 1:length(k)
             % Linear terms in spectral 
             % For  x_hat
-            term_xl1(j) = -( sig^2 + rho^2 + (4*(pi^2)*(k(j)^2))/(T^2)  ); % the sigma, rho thing, don't want to massage
-            term_xl2(j) = ( sig^2 + rho+ ( 2*pi*k(j)*(rho - sig))*complex(0, 1)/T );
+            term_xl1(j) = -( sigma^2 + rho^2 + (4*(pi^2)*(k(j)^2))/(T^2)  ); % the sigma, rho thing, don't want to massage
+            term_xl2(j) = ( sigma^2 + rho+ ( 2*pi*k(j)*(rho - sigma))*complex(0, 1)/T );
             L1(j) = term_xl1(j)*x_hat(j) + term_xl2(j)*y_hat(j);
             % For  y_hat
-            term_yl1(j) = ( sig^2 + rho+ ( 2*pi*k(j)*(sig - rho ))*complex(0, 1)/T  );
-            term_yl2(j) = -( sig^2 + 1 + (4*(pi^2)*(k(j)^2))/(T^2) );
+            term_yl1(j) = ( sigma^2 + rho+ ( 2*pi*k(j)*(sigma - rho ))*complex(0, 1)/T  );
+            term_yl2(j) = -( sigma^2 + 1 + (4*(pi^2)*(k(j)^2))/(T^2) );
             L2(j) = term_yl1(j)*x_hat(j) + term_yl2(j)*y_hat(j);
             % For  z_hat
             term_zl1(j) = -( beta^2 + (4*(pi^2)*(k(j)^2))/(T^2) );
@@ -123,7 +121,7 @@ for i = 1:20000
         y_hat = dealising(y_new);
         z_hat = dealising(z_new);
 
-        [r1, r2, r3] = residual(x_hat, y_hat, z_hat, sig, beta, rho, T, k); 
+        [r1, r2, r3] = residual(x_hat, y_hat, z_hat, sigma, beta, rho, T, k); 
     end
     x_phy = ifft( x_hat, 'symmetric');
     y_phy = ifft( y_hat, 'symmetric');
